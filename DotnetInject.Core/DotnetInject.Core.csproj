@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Reloaded.Injector" Version="1.2.5" />
+    <PackageReference Include="Reloaded.Injector" Version="1.2.6-32bitOS-fix" />
   </ItemGroup>
   
   <ItemGroup>

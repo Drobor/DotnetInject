@@ -11,8 +11,6 @@ using namespace std;
 
 void (__cdecl *LoadRuntimePacked)(wchar_t*);
 
-//void (*fun_ptr)(int)
-
 void CopyPackString(const wchar_t* src, wchar_t*& dest)
 {
     for (; *src != 0; src++)

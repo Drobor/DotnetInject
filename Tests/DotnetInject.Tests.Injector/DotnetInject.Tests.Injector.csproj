@@ -9,6 +9,15 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\DotnetInject.Core\DotnetInject.Core.csproj" />
+      <ProjectReference Include="..\DotnetInject.Tests.Payload\DotnetInject.Tests.Payload.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+      <None Update="config.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
 
 </Project>
