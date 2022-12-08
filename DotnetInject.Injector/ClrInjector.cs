@@ -11,13 +11,19 @@ namespace DotnetInject.Injector
 {
     public class ClrInjector : IClrInjector
     {
-        public void Inject(Process process, string pathToInjectingAssembly, string? pathToHostFxr = null, string? runtimeConfigPath = null)
-            => InjectInternal(process, pathToInjectingAssembly, "", pathToHostFxr, runtimeConfigPath);
+        public void Inject(Process process, string pathToInjectingAssembly, string entryPointAssemblyQualifiedName, string? pathToHostFxr = null, string? runtimeConfigPath = null)
+            => InjectInternal(process, pathToInjectingAssembly, entryPointAssemblyQualifiedName, "", pathToHostFxr, runtimeConfigPath);
 
-        public void Inject<T>(Process process, string pathToInjectingAssembly, T entryPointArgs, string? pathToHostFxr = null, string? runtimeConfigPath = null)
-            => InjectInternal(process, pathToInjectingAssembly, JsonSerializer.Serialize(entryPointArgs), pathToHostFxr, runtimeConfigPath);
+        public void Inject<T>(Process process, string pathToInjectingAssembly, string entryPointAssemblyQualifiedName, T entryPointArgs, string? pathToHostFxr = null, string? runtimeConfigPath = null)
+            => InjectInternal(process, pathToInjectingAssembly, entryPointAssemblyQualifiedName, JsonSerializer.Serialize(entryPointArgs), pathToHostFxr, runtimeConfigPath);
 
-        private void InjectInternal(Process process, string pathToInjectingAssembly, string entryPointArgs, string? pathToHostFxr = null, string? runtimeConfigPath = null)
+        private void InjectInternal(
+            Process process,
+            string pathToInjectingAssembly,
+            string entryPointAssemblyQualifiedName,
+            string entryPointArgs,
+            string? pathToHostFxr = null,
+            string? runtimeConfigPath = null)
         {
             pathToHostFxr ??= Process
                 .GetCurrentProcess()
@@ -37,6 +43,7 @@ namespace DotnetInject.Injector
             bw.WriteCString(pathToHostFxr);
             bw.WriteCString(runtimeConfigPath);
             bw.WriteCString(pathToInjectingAssembly);
+            bw.WriteCString(entryPointAssemblyQualifiedName);
             bw.WriteCString(entryPointArgs);
 
             using var nativeInjector = new Reloaded.Injector.Injector(process);

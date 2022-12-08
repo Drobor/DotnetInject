@@ -86,7 +86,7 @@ load_assembly_and_get_function_pointer_fn StartClr(const wchar_t* runtimeconfigP
     return (load_assembly_and_get_function_pointer_fn)_loadAssemblyAndGetFunctionPointer;
 }
 
-__declspec(dllexport) void LoadRuntime(wchar_t* hostFxrPath, wchar_t* runtimeConfigPath, wchar_t* assemblyDllPath, wchar_t* initArgs)
+__declspec(dllexport) void LoadRuntime(wchar_t* hostFxrPath, wchar_t* runtimeConfigPath, wchar_t* assemblyDllPath, wchar_t* entryPointAssemblyQualifiedName, wchar_t* initArgs)
 {
     LoadHostFxrLibrary(hostFxrPath);
     _loadAssemblyAndGetFunctionPointer = StartClr(runtimeConfigPath, assemblyDllPath);
@@ -94,7 +94,7 @@ __declspec(dllexport) void LoadRuntime(wchar_t* hostFxrPath, wchar_t* runtimeCon
 
     auto res = _loadAssemblyAndGetFunctionPointer(
         assemblyDllPath,
-        L"DotnetInject.Tests.Payload.DotnetInjectStartup, DotnetInject.Tests.Payload",
+        entryPointAssemblyQualifiedName,
         //L"DotnetInjectStartup, DotnetInject.Payload",
         L"Init",
         NULL,
@@ -106,15 +106,15 @@ __declspec(dllexport) void LoadRuntime(wchar_t* hostFxrPath, wchar_t* runtimeCon
 
 __declspec(dllexport) void LoadRuntimePacked(wchar_t* packedArgs)
 {
-    wchar_t* args[4];
+    wchar_t* args[5];
 
     wchar_t* argPtr = packedArgs;
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 5; i++)
     {
         args[i] = argPtr;
         argPtr += (lstrlenW(argPtr) + 1);
     }
 
-    LoadRuntime(args[0], args[1], args[2], args[3]);
+    LoadRuntime(args[0], args[1], args[2], args[3], args[4]);
 }

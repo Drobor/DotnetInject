@@ -16,5 +16,5 @@
 #endif
 
 #pragma once
-__declspec(dllexport) void __cdecl LoadRuntime(wchar_t* hostFxrPath, wchar_t* runtime_config_path, wchar_t* assemblyDllPath, wchar_t* initArgs);
+__declspec(dllexport) void __cdecl LoadRuntime(wchar_t* hostFxrPath, wchar_t* runtime_config_path, wchar_t* assemblyDllPath, wchar_t* entryPointAssemblyQualifiedName, wchar_t* initArgs);
 __declspec(dllexport) void __cdecl LoadRuntimePacked(wchar_t* packedArgs);

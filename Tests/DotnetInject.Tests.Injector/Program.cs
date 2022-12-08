@@ -37,6 +37,11 @@ process.BeginErrorReadLine();
 
 var injector = new ClrInjector();
 
-injector.Inject(process, config.InjectingAssemblyPath, config.HostFxrPath, config.RuntimeConfigPath);
+injector.Inject(
+    process,
+    config.InjectingAssemblyPath,
+    "DotnetInject.Tests.Payload.DotnetInjectStartup, DotnetInject.Tests.Payload",
+    config.HostFxrPath,
+    config.RuntimeConfigPath);
 
 Console.ReadLine();
