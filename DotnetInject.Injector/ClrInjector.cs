@@ -1,57 +1,62 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.IO.MemoryMappedFiles;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 
-namespace DotnetInject.Injector;
-
-public class ClrInjector : IClrInjector
+namespace DotnetInject.Injector
 {
-    public void Inject(Process process, string pathToInjectingAssembly, string? pathToHostFxr = null, string? runtimeConfigPath = null)
-        => InjectInternal(process, pathToInjectingAssembly, "", pathToHostFxr, runtimeConfigPath);
-
-    public void Inject<T>(Process process, string pathToInjectingAssembly, T entryPointArgs, string? pathToHostFxr = null, string? runtimeConfigPath = null)
-        => InjectInternal(process, pathToInjectingAssembly, JsonSerializer.Serialize(entryPointArgs), pathToHostFxr, runtimeConfigPath);
-
-    private void InjectInternal(Process process, string pathToInjectingAssembly, string entryPointArgs, string? pathToHostFxr = null, string? runtimeConfigPath = null)
+    public class ClrInjector : IClrInjector
     {
-        pathToHostFxr ??= Process
-            .GetCurrentProcess()
-            .Modules
-            .Cast<ProcessModule>()
-            .First(x => x.ModuleName!.Equals("hostfxr.dll", StringComparison.InvariantCultureIgnoreCase))
-            .FileName!;
+        public void Inject(Process process, string pathToInjectingAssembly, string? pathToHostFxr = null, string? runtimeConfigPath = null)
+            => InjectInternal(process, pathToInjectingAssembly, "", pathToHostFxr, runtimeConfigPath);
 
-        using var memoryMappedFile = MemoryMappedFile.CreateNew(
-            $"DotnetInjectBootstrapperParameters-{process.Id}",
-            10240,
-            MemoryMappedFileAccess.ReadWrite);
+        public void Inject<T>(Process process, string pathToInjectingAssembly, T entryPointArgs, string? pathToHostFxr = null, string? runtimeConfigPath = null)
+            => InjectInternal(process, pathToInjectingAssembly, JsonSerializer.Serialize(entryPointArgs), pathToHostFxr, runtimeConfigPath);
 
-        using var stream = memoryMappedFile.CreateViewStream();
-
-        var bw = new BinaryWriter(stream, Encoding.Unicode); //(wchar_t* hostFxrPath, wchar_t* runtime_config_path, wchar_t* assemblyDllPath, wchar_t* initArgs)
-        bw.WriteCString(pathToHostFxr);
-        bw.WriteCString(runtimeConfigPath);
-        bw.WriteCString(pathToInjectingAssembly);
-        bw.WriteCString(entryPointArgs);
-
-        using var nativeInjector = new Reloaded.Injector.Injector(process);
-        
-        Console.WriteLine("WAiting for input to proceed with injection");
-        Console.ReadLine();
-        
-        var injectresult = nativeInjector.Inject(Path.GetFullPath("DotnetInject.Native.dll"));
-
-        for (int i = 0; i < 1000; i++)
+        private void InjectInternal(Process process, string pathToInjectingAssembly, string entryPointArgs, string? pathToHostFxr = null, string? runtimeConfigPath = null)
         {
-            stream.Position = 0;
+            pathToHostFxr ??= Process
+                .GetCurrentProcess()
+                .Modules
+                .Cast<ProcessModule>()
+                .First(x => x.ModuleName!.Equals("hostfxr.dll", StringComparison.InvariantCultureIgnoreCase))
+                .FileName!;
 
-            if (stream.ReadByte() == 0)
-                return;
+            using var memoryMappedFile = MemoryMappedFile.CreateNew(
+                $"DotnetInjectBootstrapperParameters-{process.Id}",
+                10240,
+                MemoryMappedFileAccess.ReadWrite);
 
-            Thread.Sleep(10);
+            using var stream = memoryMappedFile.CreateViewStream();
+
+            var bw = new BinaryWriter(stream, Encoding.Unicode); //(wchar_t* hostFxrPath, wchar_t* runtime_config_path, wchar_t* assemblyDllPath, wchar_t* initArgs)
+            bw.WriteCString(pathToHostFxr);
+            bw.WriteCString(runtimeConfigPath);
+            bw.WriteCString(pathToInjectingAssembly);
+            bw.WriteCString(entryPointArgs);
+
+            using var nativeInjector = new Reloaded.Injector.Injector(process);
+
+            Console.WriteLine("WAiting for input to proceed with injection");
+            Console.ReadLine();
+
+            var injectresult = nativeInjector.Inject(Path.GetFullPath("DotnetInject.Native.dll"));
+
+            for (int i = 0; i < 1000; i++)
+            {
+                stream.Position = 0;
+
+                if (stream.ReadByte() == 0)
+                    return;
+
+                Thread.Sleep(10);
+            }
+
+            throw new Exception("Failed to inject - nothing happened after 10s timeout");
         }
-
-        throw new Exception("Failed to inject - nothing happened after 10s timeout");
     }
 }

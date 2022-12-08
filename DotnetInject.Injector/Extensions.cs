@@ -1,7 +1,11 @@
-﻿namespace DotnetInject.Injector;
+﻿using System.IO;
+using System.Linq;
 
-internal static class Extensions
+namespace DotnetInject.Injector
 {
-    public static void WriteCString(this BinaryWriter bw, string str)
-        => bw.Write((str + "\0").ToArray());
+    internal static class Extensions
+    {
+        public static void WriteCString(this BinaryWriter bw, string str)
+            => bw.Write((str + "\0").ToArray());
+    }
 }

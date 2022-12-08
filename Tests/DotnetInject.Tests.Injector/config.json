@@ -1,7 +1,7 @@
 {
   "FileName": "c:\\overclocking\\MEMTEST\\memtest.exe",
-  "HostFxrPath": "c:\\Projects\\DotnetInject\\Tests\\DotnetInject.Tests.Payload\\bin\\Release\\net6.0\\win7-x86\\publish\\hostfxr.dll",
+  "HostFxrPath": "c:\\Projects\\DotnetInject\\Tests\\DotnetInject.Tests.Payload\\bin\\Release\\net7.0\\win7-x86\\publish\\hostfxr.dll",
   "InitArgs": "",
-  "InjectingAssemblyPath": "c:\\Projects\\DotnetInject\\Tests\\DotnetInject.Tests.Payload\\bin\\Release\\net6.0\\win7-x86\\publish\\DotnetInject.Tests.Payload.dll",
-  "RuntimeConfigPath": "c:\\net60.runtimeconfig.json"
+  "InjectingAssemblyPath": "c:\\Projects\\DotnetInject\\Tests\\DotnetInject.Tests.Payload\\bin\\Release\\net7.0\\win7-x86\\publish\\DotnetInject.Tests.Payload.dll",
+  "RuntimeConfigPath": null
 }

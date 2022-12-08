@@ -94,8 +94,8 @@ __declspec(dllexport) void LoadRuntime(wchar_t* hostFxrPath, wchar_t* runtimeCon
 
     auto res = _loadAssemblyAndGetFunctionPointer(
         assemblyDllPath,
-        //L"DotnetInject.Tests.Payload.DotnetInjectStartup, DotnetInject.Tests.Payload",
-        L"DotnetInject.Payload.DotnetInjectEntryPoint, DotnetInject.Payload",
+        L"DotnetInject.Tests.Payload.DotnetInjectStartup, DotnetInject.Tests.Payload",
+        //L"DotnetInjectStartup, DotnetInject.Payload",
         L"Init",
         NULL,
         NULL,

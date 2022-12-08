@@ -1,11 +1,13 @@
-﻿namespace DotnetInject.Payload;
-
-public interface IDotnetInjectEntryPoint
+﻿namespace DotnetInject.Payload
 {
-    void Main();
-}
 
-public interface IDotnetInjectEntryPoint<T>
-{
-    void Main(T arg);
+    public interface IDotnetInjectEntryPoint
+    {
+        void Main();
+    }
+
+    public interface IDotnetInjectEntryPoint<T>
+    {
+        void Main(T arg);
+    }
 }

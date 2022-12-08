@@ -1,14 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<EnableDynamicLoading>true</EnableDynamicLoading>
 	  
   </PropertyGroup>
 
+  <!--
   <ItemGroup>
     <ProjectReference Include="..\..\DotnetInject.Payload\DotnetInject.Payload.csproj" />
-  </ItemGroup>
+  </ItemGroup>-->
 
 </Project>

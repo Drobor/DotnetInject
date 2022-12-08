@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
-using DotnetInject.Payload;
+
+//using DotnetInject.Payload;
 
 namespace DotnetInject.Tests.Payload
 {
@@ -10,16 +11,23 @@ namespace DotnetInject.Tests.Payload
         {
             try
             {
-                File.WriteAllText(@"c:\Downloads\InjectLog.txt", $"InjectLog {DateTime.Now}");
+                File.WriteAllText(@"c:\Downloads\InjectLog.txt", $"InjectLog {DateTime.Now}\nNetVersion{Environment.Version}");
             }
             finally
             {
                 Console.WriteLine("Inject Completed");
             }
+            
+            
 
             return 0;
         }
     }
+}
+/*
+namespace DotnetInject.Tests.Payload
+{
+    
 
     public class DotnetInjectTestStartupNwe : IDotnetInjectEntryPoint
     {
@@ -35,4 +43,4 @@ namespace DotnetInject.Tests.Payload
             }
         }
     }
-}
+}*/

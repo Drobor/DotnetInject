@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Text.Json;
 using DotnetInject.Injector;
 
@@ -6,8 +8,14 @@ var config = JsonSerializer.Deserialize<Config>(File.ReadAllText("config.json"))
 
 var psi = new ProcessStartInfo
 {
-    EnvironmentVariables = { ["COREHOST_TRACE"] = "1" },
+    EnvironmentVariables =
+    {
+        ["PAL_DBG_CHANNELS"] = "+all.all",
+        ["COREHOST_TRACE"] = "1",
+        ["COREHOST_TRACE_VERBOSITY"] = "4",
+    },
     FileName = config.FileName,
+    WorkingDirectory = Path.GetDirectoryName(config.FileName),
     RedirectStandardError = true,
     RedirectStandardOutput = true
 };
