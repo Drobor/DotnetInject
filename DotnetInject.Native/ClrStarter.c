@@ -48,7 +48,6 @@ enum hostfxr_delegate_type
     hdt_get_function_pointer,
 };
 
-
 hostfxr_get_runtime_delegate_fn _hostfxrGetRuntimeDelegate;
 hostfxr_initialize_for_runtime_config_fn _hostfxrInitializeForRuntimeConfig;
 hostfxr_close_fn _hostfxrClose;
@@ -57,16 +56,8 @@ hostfxr_initialize_for_dotnet_command_line_fn _hostfxrInitializeForDotnetCommand
 
 boolean LoadHostFxrLibrary(wchar_t* hostFxrPath)
 {
-    // Get the path to CoreCLR's hostfxr
-    //char buffer[260];
-    //int buffer_size = sizeof(buffer) / sizeof(char_t);
-    //int rc = get_hostfxr_path(buffer, &buffer_size, NULL);
-    //if (rc != 0)
-    //return false;
-
-    // Load hostfxr and get desired exports
     auto lib = LoadLibraryW(hostFxrPath);
-    auto err = GetLastError();
+
     _hostfxrInitializeForRuntimeConfig = (hostfxr_initialize_for_runtime_config_fn)GetProcAddress(lib, "hostfxr_initialize_for_runtime_config");
     _hostfxrInitializeForDotnetCommandLine = (hostfxr_initialize_for_dotnet_command_line_fn)GetProcAddress(lib, "hostfxr_initialize_for_dotnet_command_line");
     _hostfxrGetRuntimeDelegate = (hostfxr_get_runtime_delegate_fn)GetProcAddress(lib, "hostfxr_get_runtime_delegate");
@@ -79,8 +70,10 @@ load_assembly_and_get_function_pointer_fn StartClr(const wchar_t* runtimeconfigP
 {
     // Load .NET Core
     hostfxr_handle context = NULL;
-    //int rc = _hostfxrInitializeForRuntimeConfig(runtimeconfigPath, NULL, &context);
+
+    //const int rc = _hostfxrInitializeForRuntimeConfig(runtimeconfigPath, NULL, &context);// doesn't work for selfcontained
     const int initResult = _hostfxrInitializeForDotnetCommandLine(1, &assemblyDllPath, NULL, &context);
+
     if (initResult != 0 || context == NULL)
     {
         _hostfxrClose(context);
@@ -101,7 +94,8 @@ __declspec(dllexport) void LoadRuntime(wchar_t* hostFxrPath, wchar_t* runtimeCon
 
     auto res = _loadAssemblyAndGetFunctionPointer(
         assemblyDllPath,
-        L"DotnetInject.Tests.Payload.DotnetInjectStartup, DotnetInject.Tests.Payload",
+        //L"DotnetInject.Tests.Payload.DotnetInjectStartup, DotnetInject.Tests.Payload",
+        L"DotnetInject.Payload.DotnetInjectEntryPoint, DotnetInject.Payload",
         L"Init",
         NULL,
         NULL,
@@ -124,15 +118,3 @@ __declspec(dllexport) void LoadRuntimePacked(wchar_t* packedArgs)
 
     LoadRuntime(args[0], args[1], args[2], args[3]);
 }
-
-boolean LoadClrAssemblyAndGetFunctionPointer(
-    const WCHAR* assembly_path,
-    const WCHAR* type_name,
-    const WCHAR* method_name,
-    const WCHAR* delegate_type_name,
-    void* reserved,
-    void** delegate)
-{
-    int result = _loadAssemblyAndGetFunctionPointer(assembly_path, type_name, method_name, delegate_type_name, reserved, delegate);
-    return (result == 0 && delegate != NULL);
-};

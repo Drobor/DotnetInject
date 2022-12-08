@@ -2,9 +2,8 @@
 using System.IO.MemoryMappedFiles;
 using System.Text;
 using System.Text.Json;
-using Reloaded.Injector;
 
-namespace DotnetInject.Core;
+namespace DotnetInject.Injector;
 
 public class ClrInjector : IClrInjector
 {
@@ -24,7 +23,7 @@ public class ClrInjector : IClrInjector
             .FileName!;
 
         using var memoryMappedFile = MemoryMappedFile.CreateNew(
-            "DotnetInjectBootstrapperParameters",
+            $"DotnetInjectBootstrapperParameters-{process.Id}",
             10240,
             MemoryMappedFileAccess.ReadWrite);
 
@@ -36,7 +35,7 @@ public class ClrInjector : IClrInjector
         bw.WriteCString(pathToInjectingAssembly);
         bw.WriteCString(entryPointArgs);
 
-        using var nativeInjector = new Injector(process);
+        using var nativeInjector = new Reloaded.Injector.Injector(process);
         
         Console.WriteLine("WAiting for input to proceed with injection");
         Console.ReadLine();

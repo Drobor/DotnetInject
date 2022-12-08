@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\DotnetInject.Core\DotnetInject.Core.csproj" />
+      <ProjectReference Include="..\..\DotnetInject.Injector\DotnetInject.Injector.csproj" />
       <ProjectReference Include="..\DotnetInject.Tests.Payload\DotnetInject.Tests.Payload.csproj" />
     </ItemGroup>
 

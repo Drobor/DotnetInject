@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
-using DotnetInject.Core;
+using DotnetInject.Injector;
 
 var config = JsonSerializer.Deserialize<Config>(File.ReadAllText("config.json"));
 

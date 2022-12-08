@@ -1,4 +1,4 @@
-﻿namespace DotnetInject.Core;
+﻿namespace DotnetInject.Injector;
 
 internal static class Extensions
 {

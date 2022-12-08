@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace DotnetInject.Core;
+namespace DotnetInject.Injector;
 
 public interface IClrInjector
 {

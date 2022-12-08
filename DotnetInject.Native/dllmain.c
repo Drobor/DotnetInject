@@ -1,48 +1,42 @@
+#include <wchar.h>
+
 #include "ClrStarter.h"
 
 void LoadFromMemoryMappedFile()
 {
-    HANDLE hMapFile;
-    LPCTSTR pBuf;
+    wchar_t processId[32] = L"";
 
-    hMapFile = OpenFileMappingW(
+    swprintf_s(processId, 32, L"%d", GetCurrentProcessId());
+
+    wchar_t memoryMappedFileName[64] = L"DotnetInjectBootstrapperParameters-";
+    wcscat_s(memoryMappedFileName, 64, processId);
+
+    HANDLE hMapFile = OpenFileMappingW(
         FILE_MAP_ALL_ACCESS, // read/write access
         FALSE, // do not inherit the name
-        L"DotnetInjectBootstrapperParameters"); // name of mapping object
+        memoryMappedFileName); // name of mapping object
 
     if (hMapFile == NULL)
-    {
-        //_tprintf(TEXT("Could not open file mapping object (%d).\n"),
-        //       GetLastError());
         return;
-    }
 
-    pBuf = MapViewOfFile(hMapFile, // handle to map object
-                         FILE_MAP_ALL_ACCESS, // read/write permission
-                         0,
-                         0,
-                         10240);
+    void* pBuf = MapViewOfFile(hMapFile, // handle to map object
+                               FILE_MAP_ALL_ACCESS, // read/write permission
+                               0,
+                               0,
+                               10240);
 
     if (pBuf == NULL)
     {
-        auto err = GetLastError();
-        //_tprintf(TEXT("Could not map view of file (%d).\n"),
-        //      err);
-
         CloseHandle(hMapFile);
-
         return;
     }
 
     LoadRuntimePacked((wchar_t*)pBuf);
 
-    //MessageBox(NULL, pBuf, TEXT("Process2"), MB_OK);
+    *(char*)pBuf = 0;
 
     UnmapViewOfFile(pBuf);
-
     CloseHandle(hMapFile);
-
-    return;
 }
 
 int APIENTRY DllMain(HMODULE hModule,
