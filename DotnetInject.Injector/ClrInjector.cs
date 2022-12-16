@@ -77,8 +77,10 @@ namespace DotnetInject.Injector
 
             using var nativeInjector = new Reloaded.Injector.Injector(process);
 
+#if DEBUG
             Console.WriteLine("WAiting for input to proceed with injection");
             Console.ReadLine();
+#endif
 
             var injectresult = nativeInjector.Inject(Path.GetFullPath("DotnetInject.Native.dll"));
 
