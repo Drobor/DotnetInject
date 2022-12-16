@@ -18,11 +18,13 @@
     <ClCompile Include="dllmain.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ClrStarter.h">
+    <ClCompile Include="ClrStarter.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="qweqwe.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ClrStarter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

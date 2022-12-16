@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <Version>0.0.3</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,7 +11,8 @@
   </ItemGroup>
   
   <ItemGroup>
-    <None Include="..\DotnetInject.Native\bin\$(Configuration)\x86\DotnetInject.Native.dll">
+    <None Include="..\DotnetInject.Native\bin\$(Configuration)\x86\DotnetInject.Native.dll" Pack="true" PackagePath="contentFiles\any\any">
+      <PackageCopyToOutput>true</PackageCopyToOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
