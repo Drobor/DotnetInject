@@ -6,42 +6,64 @@ using DotnetInject.Injector;
 
 var config = JsonSerializer.Deserialize<Config>(File.ReadAllText("config.json"));
 
-var psi = new ProcessStartInfo
+InjectAtStart();
+
+void InjectAtStart()
 {
-    EnvironmentVariables =
+    var injector = new ClrInjector();
+    var psi = new ProcessStartInfo
     {
-        ["PAL_DBG_CHANNELS"] = "+all.all",
-        ["COREHOST_TRACE"] = "1",
-        ["COREHOST_TRACE_VERBOSITY"] = "4",
-    },
-    FileName = config.FileName,
-    WorkingDirectory = Path.GetDirectoryName(config.FileName),
-    RedirectStandardError = true,
-    RedirectStandardOutput = true
-};
+        FileName = config.FileName,
+        WorkingDirectory = Path.GetDirectoryName(config.FileName),
+    };
 
-var process = new Process
+    injector.InjectOnStart(
+        psi,
+        config.InjectingAssemblyPath,
+        "DotnetInject.Tests.Payload.DotnetInjectStartup, DotnetInject.Tests.Payload",
+        config.HostFxrPath,
+        config.RuntimeConfigPath);
+}
+
+void InjectAfterStart()
 {
-    EnableRaisingEvents = true,
-    StartInfo = psi,
-};
+    var psi = new ProcessStartInfo
+    {
+        EnvironmentVariables =
+        {
+            ["PAL_DBG_CHANNELS"] = "+all.all",
+            ["COREHOST_TRACE"] = "1",
+            ["COREHOST_TRACE_VERBOSITY"] = "4",
+        },
+        FileName = config.FileName,
+        WorkingDirectory = Path.GetDirectoryName(config.FileName),
+        RedirectStandardError = true,
+        RedirectStandardOutput = true
+    };
 
-Action<object, DataReceivedEventArgs> actionWrite = (sender, e) => { Console.WriteLine(e.Data); };
+    var process = new Process
+    {
+        EnableRaisingEvents = true,
+        StartInfo = psi,
+    };
 
-process.ErrorDataReceived += (sender, e) => actionWrite(sender, e);
-process.OutputDataReceived += (sender, e) => actionWrite(sender, e);
+    Action<object, DataReceivedEventArgs> actionWrite = (sender, e) => { Console.WriteLine(e.Data); };
 
-process.Start();
-process.BeginOutputReadLine();
-process.BeginErrorReadLine();
+    process.ErrorDataReceived += (sender, e) => actionWrite(sender, e);
+    process.OutputDataReceived += (sender, e) => actionWrite(sender, e);
 
-var injector = new ClrInjector();
+    process.Start();
+    process.BeginOutputReadLine();
+    process.BeginErrorReadLine();
 
-injector.Inject(
-    process,
-    config.InjectingAssemblyPath,
-    "DotnetInject.Tests.Payload.DotnetInjectStartup, DotnetInject.Tests.Payload",
-    config.HostFxrPath,
-    config.RuntimeConfigPath);
+    var injector = new ClrInjector();
 
-Console.ReadLine();
+    injector.Inject(
+        process,
+        config.InjectingAssemblyPath,
+        "DotnetInject.Tests.Payload.DotnetInjectStartup, DotnetInject.Tests.Payload",
+        config.HostFxrPath,
+        config.RuntimeConfigPath);
+
+    Console.ReadLine();
+}

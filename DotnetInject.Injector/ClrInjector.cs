@@ -3,48 +3,38 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
+using DotnetInject.Injector.PInvoke;
 
 namespace DotnetInject.Injector
 {
     public class ClrInjector : IClrInjector
     {
-        [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern IntPtr CreateRemoteThread(
-            IntPtr hProcess,
-            IntPtr lpThreadAttributes,
-            UIntPtr dwStackSize,
-            IntPtr lpStartAddress,
-            IntPtr lpParameter,
-            CREATE_THREAD_FLAGS dwCreationFlags,
-            out uint lpThreadId);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern uint WaitForSingleObject(IntPtr hHandle, uint dwMilliseconds);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool GetExitCodeThread(IntPtr hThread, out uint lpExitCode);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        public static extern uint GetSystemWow64Directory(StringBuilder lpBuffer, uint uSize);
-
-        [Flags]
-        public enum CREATE_THREAD_FLAGS
-        {
-            RUN_IMMEDIATELY = 0,
-            CREATE_SUSPENDED = 4,
-            STACK_SIZE_PARAM_IS_A_RESERVATION = 65536, // 0x00010000
-        }
-
         public void Inject(Process process, string pathToInjectingAssembly, string entryPointAssemblyQualifiedName, string? pathToHostFxr = null, string? runtimeConfigPath = null)
             => InjectInternal(process, pathToInjectingAssembly, entryPointAssemblyQualifiedName, "", pathToHostFxr, runtimeConfigPath);
 
         public void Inject<T>(Process process, string pathToInjectingAssembly, string entryPointAssemblyQualifiedName, T entryPointArgs, string? pathToHostFxr = null, string? runtimeConfigPath = null)
             => InjectInternal(process, pathToInjectingAssembly, entryPointAssemblyQualifiedName, JsonSerializer.Serialize(entryPointArgs), pathToHostFxr, runtimeConfigPath);
+
+        public Process InjectOnStart(ProcessStartInfo processStartInfo, string pathToInjectingAssembly, string entryPointAssemblyQualifiedName, string? pathToHostFxr = null, string? runtimeConfigPath = null)
+        {
+            var processInfo = CreateProcessSuspended(processStartInfo);
+            var process = Process.GetProcessById(processInfo.dwProcessId);
+            InjectInternal(process, pathToInjectingAssembly, entryPointAssemblyQualifiedName, "", pathToHostFxr, runtimeConfigPath);
+            Kernel32.ResumeThread(processInfo.hThread);
+            return process;
+        }
+
+        public Process InjectOnStart<T>(ProcessStartInfo processStartInfo, string pathToInjectingAssembly, string entryPointAssemblyQualifiedName, T entryPointArgs, string? pathToHostFxr = null, string? runtimeConfigPath = null)
+        {
+            var processInfo = CreateProcessSuspended(processStartInfo);
+            var process = Process.GetProcessById(processInfo.dwProcessId);
+            InjectInternal(process, pathToInjectingAssembly, entryPointAssemblyQualifiedName, JsonSerializer.Serialize(entryPointArgs), pathToHostFxr, runtimeConfigPath);
+            Kernel32.ResumeThread(processInfo.hThread);
+            return process;
+        }
 
         private void InjectInternal(
             Process process,
@@ -75,6 +65,16 @@ namespace DotnetInject.Injector
             bw.WriteCString(entryPointAssemblyQualifiedName);
             bw.WriteCString(entryPointArgs);
 
+            try
+            {
+                var _ = process.Modules;
+            }
+            catch
+            {
+                CreateDummyThread(process);
+            }
+
+
             using var nativeInjector = new Reloaded.Injector.Injector(process);
 
 #if DEBUG
@@ -92,11 +92,11 @@ namespace DotnetInject.Injector
 
             if (signalByte != 255)
                 throw new Exception("Signal byte that was supposed to be set by native payload wasn't set");
-            
-            var newThread = CreateRemoteThread(process.Handle, IntPtr.Zero, UIntPtr.Zero, (nint)address, IntPtr.Zero, CREATE_THREAD_FLAGS.RUN_IMMEDIATELY, out uint _);
+
+            var newThread = Kernel32.CreateRemoteThread(process.Handle, IntPtr.Zero, UIntPtr.Zero, (nint)address, IntPtr.Zero, CREATE_THREAD_FLAGS.RUN_IMMEDIATELY, out uint _);
             //Console.WriteLine("WAiting for input to proceed with injection");
             //Console.ReadLine();
-            WaitForSingleObject(newThread, uint.MaxValue);
+            Kernel32.WaitForSingleObject(newThread, uint.MaxValue);
 
 
             for (int i = 0; i < 1000; i++)
@@ -110,6 +110,56 @@ namespace DotnetInject.Injector
             }
 
             throw new Exception("Failed to inject - nothing happened after 10s timeout");
+        }
+
+        private void CreateDummyThread(Process process)
+        {
+            var memorySize = 256;
+            var memory = Enumerable.Repeat((byte)0xCC, memorySize).ToArray();
+            memory[0] = 0xC2;
+            memory[1] = 0x04;
+            memory[2] = 0x00;
+
+            var addr = Kernel32.VirtualAllocEx(process.Handle, IntPtr.Zero, (uint)memorySize, AllocationType.Commit, MemoryProtection.ReadWrite);
+            Kernel32.WriteProcessMemory(process.Handle, addr, memory, memorySize, out var bytesWritten);
+            Kernel32.VirtualProtectEx(process.Handle, addr, (nuint)memorySize, MemoryProtection.ExecuteRead, out var oldProtect);
+
+            var newThread = Kernel32.CreateRemoteThread(process.Handle, IntPtr.Zero, UIntPtr.Zero, addr, IntPtr.Zero, CREATE_THREAD_FLAGS.RUN_IMMEDIATELY, out uint _);
+            Kernel32.WaitForSingleObject(newThread, uint.MaxValue);
+        }
+
+        private PROCESS_INFORMATION CreateProcessSuspended(ProcessStartInfo psi)
+        {
+            if (psi.CreateNoWindow
+                || psi.ErrorDialog
+                || psi.RedirectStandardError
+                || psi.RedirectStandardInput
+                || psi.RedirectStandardOutput
+                || psi.LoadUserProfile
+                || psi.UseShellExecute
+                || !string.IsNullOrEmpty(psi.Domain)
+                || psi.Password != null
+                || !string.IsNullOrEmpty(psi.UserName))
+            {
+                throw new NotSupportedException($"some of the properties of ProcessStartInfo were not supported");
+            }
+
+            STARTUPINFO si = default;
+
+            Kernel32.CreateProcessW(
+                psi.FileName,
+                psi.Arguments,
+                IntPtr.Zero,
+                IntPtr.Zero,
+                false,
+                ProcessCreationFlags.CreateSuspended,
+                IntPtr.Zero,
+                psi.WorkingDirectory,
+                ref si,
+                out var processInformation
+            );
+
+            return processInformation;
         }
     }
 }
