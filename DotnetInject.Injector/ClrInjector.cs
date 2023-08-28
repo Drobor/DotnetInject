@@ -148,7 +148,7 @@ namespace DotnetInject.Injector
 
             Kernel32.CreateProcessW(
                 psi.FileName,
-                psi.Arguments,
+                $"\"{Path.GetFileName(psi.FileName)}\" {psi.Arguments}",
                 IntPtr.Zero,
                 IntPtr.Zero,
                 false,
