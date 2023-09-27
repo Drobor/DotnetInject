@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <Version>0.0.6</Version>
+    <Version>0.0.7</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -12,7 +12,12 @@
   </ItemGroup>
   
   <ItemGroup>
-    <None Include="..\DotnetInject.Native\bin\$(Configuration)\x86\DotnetInject.Native.dll" Pack="true" PackagePath="contentFiles\any\any">
+    <None Include="..\DotnetInject.Native\bin\$(Configuration)\x86\DotnetInject.Native.dll" Pack="true" PackagePath="runtimes/win-x86/native">
+      <PackageCopyToOutput>true</PackageCopyToOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+
+    <None Include="..\DotnetInject.Native\bin\$(Configuration)\x64\DotnetInject.Native.dll" Pack="true" PackagePath="runtimes/win-x64/native">
       <PackageCopyToOutput>true</PackageCopyToOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

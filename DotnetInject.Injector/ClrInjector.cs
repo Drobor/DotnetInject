@@ -36,7 +36,7 @@ namespace DotnetInject.Injector
             return process;
         }
 
-        private void InjectInternal(
+        private unsafe void InjectInternal(
             Process process,
             string pathToInjectingAssembly,
             string entryPointAssemblyQualifiedName,
@@ -84,10 +84,13 @@ namespace DotnetInject.Injector
 
             var injectresult = nativeInjector.Inject(Path.GetFullPath("DotnetInject.Native.dll"));
 
-            stream.Position = 10235;
+            stream.Position = 10231;
             var br = new BinaryReader(stream);
 
-            var address = br.ReadInt32();
+            nint address = sizeof(nint) == 8
+                ? (nint)br.ReadInt64()
+                : (nint)br.ReadInt32();
+
             var signalByte = br.ReadByte();
 
             if (signalByte != 255)

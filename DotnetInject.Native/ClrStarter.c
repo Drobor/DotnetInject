@@ -56,7 +56,7 @@ hostfxr_initialize_for_dotnet_command_line_fn _hostfxrInitializeForDotnetCommand
 
 boolean LoadHostFxrLibrary(wchar_t* hostFxrPath)
 {
-    auto lib = LoadLibraryW(hostFxrPath);
+    void* lib = LoadLibraryW(hostFxrPath);
 
     _hostfxrInitializeForRuntimeConfig = (hostfxr_initialize_for_runtime_config_fn)GetProcAddress(lib, "hostfxr_initialize_for_runtime_config");
     _hostfxrInitializeForDotnetCommandLine = (hostfxr_initialize_for_dotnet_command_line_fn)GetProcAddress(lib, "hostfxr_initialize_for_dotnet_command_line");
@@ -66,7 +66,7 @@ boolean LoadHostFxrLibrary(wchar_t* hostFxrPath)
     return (_hostfxrInitializeForRuntimeConfig && _hostfxrGetRuntimeDelegate && _hostfxrClose && _hostfxrInitializeForDotnetCommandLine);
 }
 
-load_assembly_and_get_function_pointer_fn StartClr(const wchar_t* runtimeconfigPath, const wchar_t* assemblyDllPath)
+load_assembly_and_get_function_pointer_fn   StartClr(const wchar_t* runtimeconfigPath, const wchar_t* assemblyDllPath)
 {
     // Load .NET Core
     hostfxr_handle context = NULL;
@@ -92,7 +92,7 @@ __declspec(dllexport) void LoadRuntime(wchar_t* hostFxrPath, wchar_t* runtimeCon
     _loadAssemblyAndGetFunctionPointer = StartClr(runtimeConfigPath, assemblyDllPath);
     component_entry_point_fn initDelegate = NULL;
 
-    auto res = _loadAssemblyAndGetFunctionPointer(
+    void* res = _loadAssemblyAndGetFunctionPointer(
         assemblyDllPath,
         entryPointAssemblyQualifiedName,
         //L"DotnetInjectStartup, DotnetInject.Payload",

@@ -46,8 +46,8 @@ void LoadMemoryMappedFile()
 
     *(((unsigned char*)_pBuf) + 10239) = 255;
 
-    int* functionAddress = (int*)(((char*)_pBuf) + 10235);
-    *functionAddress = (int)&LoadClrFromMemoryMappedFile;
+    void** functionAddress = (void**)(((char*)_pBuf) + 10231);
+    *functionAddress = &LoadClrFromMemoryMappedFile;
 }
 
 int APIENTRY DllMain(HMODULE hModule,
