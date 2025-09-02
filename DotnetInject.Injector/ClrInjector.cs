@@ -87,10 +87,7 @@ namespace DotnetInject.Injector
             stream.Position = 10231;
             var br = new BinaryReader(stream);
 
-            nint address = sizeof(nint) == 8
-                ? (nint)br.ReadInt64()
-                : (nint)br.ReadInt32();
-
+            nint address = (nint)br.ReadInt64();
             var signalByte = br.ReadByte();
 
             if (signalByte != 255)
